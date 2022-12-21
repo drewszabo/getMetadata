@@ -27,9 +27,7 @@ getMetadata <- function(filename, export = FALSE){
   file <- read.csv(filename)
   file[file == "" | file == "-"] <- NA
   
-  # Remove invalid SMILES and InChI
-  file$SMILES[!is.smiles(SMILES)] <- NA
-  file$StdInChIKey[!is.inchikey(StdInChIKey)] <- NA
+  # Remove invalid SMILES and InChI (TBA)
   
   #-----------------
   # Get PubChem_CID from SMILES, InChI, InChIKey, or Name
@@ -110,4 +108,3 @@ getMetadata <- function(filename, export = FALSE){
   return(file)
   
 }
-
