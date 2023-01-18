@@ -34,8 +34,7 @@ A data.frame object.
 
 ## Author
 Drew Szabo <br>
-GitHub: [drewszabo](https://github.com/drewszabo) <br>
-ORCID: [0000-0002-0089-9218](https://orcid.org/0000-0002-0089-9218)
+Helen Sepman <p>
 
 ## Copyright
 ©️ KruveLab 2022. Stockholm University, Sweden 114 18.
