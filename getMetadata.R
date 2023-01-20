@@ -24,23 +24,17 @@ getMetadata <- function(filename, export = FALSE){
   #-----------------
   
   # File import
-  file <- read.csv(filename)
-  file[file == "" | file == "-"] <- NA
+  file <- read_delim(filename,
+                     delim = ",",
+                     trim_ws = TRUE)
+  #file[file == "" | file == "-"] <- NA
   
   # Remove invalid SMILES and InChI (TBA)
   
   #-----------------
   # Get PubChem_CID from SMILES, InChI, InChIKey, or Name
   #-----------------
-  
-  # SMILES
-  file <- file %>%
-    rowwise() %>%
-    mutate(PubChem_CID = ifelse(is.na(PubChem_CID) & !is.na(SMILES),
-                                unlist(get_cid(SMILES, from = "smiles", domain = "compound", match = "na", verbose = TRUE)[[2]]),
-                                as.character(PubChem_CID))) %>%
-    ungroup()
-  
+
   # InChI
   file <- file %>%
     rowwise() %>%
@@ -57,6 +51,14 @@ getMetadata <- function(filename, export = FALSE){
                                 as.character(PubChem_CID))) %>%
     ungroup()
   
+  # SMILES
+  file <- file %>%
+    rowwise() %>%
+    mutate(PubChem_CID = ifelse(is.na(PubChem_CID) & !is.na(SMILES),
+                                unlist(get_cid(SMILES, from = "smiles", domain = "compound", match = "na", verbose = TRUE)[[2]]),
+                                as.character(PubChem_CID))) %>%
+    ungroup()
+  
   # Name
   file <- file %>%
     rowwise() %>%
@@ -69,7 +71,7 @@ getMetadata <- function(filename, export = FALSE){
   # Get PubChem data for all
   #-----------------
   
-  pcProp <- pc_prop(cleanSolutions$PubChem_CID,
+  pcProp <- pc_prop(file$PubChem_CID,
                     properties = c("InChI", "InChIKey", "MonoisotopicMass", "MolecularFormula", "CanonicalSMILES"),
                     verbose = TRUE)
   
@@ -78,12 +80,12 @@ getMetadata <- function(filename, export = FALSE){
   #-----------------
   
   #Molecular Formula
-  file$Molecular_Formula[is.na(file$Molecular_Formula)] <- 
-    pcProp$MolecularFormula[match(file$PubChem_CID, pcProp$CID)[which(is.na(file$Molecular_Formula))]]
+  file$molecular_formula[is.na(file$molecular_formula)] <- 
+    pcProp$MolecularFormula[match(file$PubChem_CID, pcProp$CID)[which(is.na(file$molecular_formula))]]
   
   #Monoiso Mass
-  file$Monoiso_Mass[is.na(file$Monoiso_Mass)] <- 
-    pcProp$MonoisotopicMass[match(file$PubChem_CID, pcProp$CID)[which(is.na(file$Monoiso_Mass))]]
+  file$monoiso_mass[is.na(file$monoiso_mass)] <- 
+    pcProp$MonoisotopicMass[match(file$PubChem_CID, pcProp$CID)[which(is.na(file$monoiso_mass))]]
   
   #InChi
   file$StdInChI[is.na(file$StdInChI)] <- 
@@ -98,11 +100,25 @@ getMetadata <- function(filename, export = FALSE){
     pcProp$CanonicalSMILES[match(file$PubChem_CID, pcProp$CID)[which(is.na(file$SMILES))]]
   
   #-----------------
+  # If a chemical does not have PubChem_CID but has been used before and has manually inserted metadata
+  #-----------------
+  
+  # if PubChem_CID is still empty
+  # file <- file %>%
+  #   rowwise() %>%
+  #   mutate(PubChem_CID = ifelse(is.na(PubChem_CID),
+
+  # chemicals_notInPubChem <- file %>% 
+  #   filter(is.na(PubChem_CID)) %>% 
+  #   drop_na(name)
+  # ... needs to be fixed
+  
+  #-----------------
   # Export and Return
   #-----------------
   
   if(export != FALSE){
-    write.csv(file, export)
+    write_delim(file, export, delim = ",")
   }
   
   return(file)
